@@ -132,6 +132,7 @@ impl<'a> TypeExprChildren<'a> {
             TypeExpr::Intersection(TypeIntersection { docs: _, members }) => {
                 Self::Slice(members.iter())
             }
+            TypeExpr::ReadOnlyTag => Self::None,
         }
     }
 }
@@ -332,6 +333,8 @@ fn hash_type_expr(expr: &TypeExpr, hash_kind: HashKind) -> u64 {
                     visit_expr(member, hash_kind, state);
                 }
             }
+            TypeExpr::ReadOnlyTag => {
+            },
         }
     }
 

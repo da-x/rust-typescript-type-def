@@ -744,6 +744,13 @@ export namespace types {
         );
 
         #[derive(Serialize, TypeDef)]
+        #[type_def(newtype)]
+        #[serde(transparent)]
+        struct NewtypeStringWrapper(
+            #[type_def(type_of = "String")] ExternalString,
+        );
+
+        #[derive(Serialize, TypeDef)]
         struct Test {
             #[type_def(type_of = "String")]
             a: ExternalString,
@@ -753,6 +760,7 @@ export namespace types {
             d: usize,
             #[type_def(flatten, type_of = "Test3")]
             e: Test2,
+            f: NewtypeStringWrapper,
         }
 
         #[derive(Serialize)]
@@ -774,11 +782,13 @@ export namespace types {
     };
     export type ExternalStringWrapper = string;
     export type I16 = number;
+    export type NewtypeStringWrapper = (string & { readonly __tag: unique symbol });
     export type Test = (types.Test3 & {
         "a": string;
         "b": types.ExternalStringWrapper;
         "c": string;
         "d": types.I16;
+        "f": types.NewtypeStringWrapper;
     });
 }
 "#

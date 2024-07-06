@@ -130,6 +130,8 @@ struct TypeDefInput {
     // type_def
     #[darling(default)]
     namespace: Namespace,
+    #[darling(default)]
+    newtype: bool,
 
     // serde
     #[darling(default)]
@@ -285,6 +287,7 @@ fn make_info_def(
         generics,
         data,
         namespace,
+        newtype,
         tag,
         content,
         untagged,
@@ -343,14 +346,14 @@ fn make_info_def(
                 match style {
                     ast::Style::Unit => type_expr_ident("null"),
                     ast::Style::Tuple => fields_to_type_expr(
-                        fields, false, rename_all, generics, None,
+                        fields, false, rename_all, generics, None, *newtype,
                     ),
                     ast::Style::Struct => {
                         if fields.is_empty() {
                             type_expr_object([], None)
                         } else {
                             fields_to_type_expr(
-                                fields, true, rename_all, generics, None,
+                                fields, true, rename_all, generics, None, false,
                             )
                         }
                     }
@@ -386,12 +389,13 @@ fn fields_to_type_expr(
     rename_all: &Option<SpannedValue<String>>,
     generics: &Generics,
     docs: Option<&Expr>,
+    newtype: bool,
 ) -> Expr {
     if fields.is_empty() {
         return if named {
             type_expr_object(std::iter::empty(), docs)
         } else {
-            type_expr_tuple(std::iter::empty(), docs)
+            type_expr_tuple(std::iter::empty(), docs, newtype)
         };
     }
     let all_flatten = fields.iter().all(|TypeDefField { flatten, .. }| {
@@ -484,7 +488,7 @@ fn fields_to_type_expr(
         if named {
             type_expr_object(fields, docs)
         } else {
-            type_expr_tuple(fields, docs)
+            type_expr_tuple(fields, docs, newtype)
         }
     }));
     type_expr_intersection(exprs, None)
@@ -531,6 +535,7 @@ fn variants_to_type_expr(
                                         field_rename_all,
                                         generics,
                                         None,
+                                        false,
                                     ),
                                     extract_type_docs(attrs).as_ref(),
                                 )],
@@ -547,6 +552,7 @@ fn variants_to_type_expr(
                                 field_rename_all,
                                 generics,
                                 extract_type_docs(attrs).as_ref(),
+                                false,
                             )
                         }
                     },
@@ -589,6 +595,7 @@ fn variants_to_type_expr(
                                         field_rename_all,
                                         generics,
                                         None,
+                                        false,
                                     ),
                                 ],
                                 None,
@@ -626,6 +633,7 @@ fn variants_to_type_expr(
                                             field_rename_all,
                                             generics,
                                             None,
+                                            false,
                                         ),
                                         None,
                                     ),
@@ -729,11 +737,27 @@ fn type_expr_string(value: &str, docs: Option<&Expr>) -> Expr {
 fn type_expr_tuple(
     exprs: impl IntoIterator<Item = Expr>,
     docs: Option<&Expr>,
+    newtype: bool,
 ) -> Expr {
     let docs = wrap_optional_docs(docs);
     let exprs = exprs.into_iter().collect::<Vec<_>>();
     if exprs.len() == 1 {
-        exprs.into_iter().next().unwrap()
+        if newtype {
+            let mut exprs = exprs;
+            exprs.push(parse_quote!{
+                ::typescript_type_def::type_expr::TypeExpr::ReadOnlyTag
+            });
+            parse_quote! {
+                ::typescript_type_def::type_expr::TypeExpr::Intersection(
+                    ::typescript_type_def::type_expr::TypeIntersection {
+                        docs: #docs,
+                        members: &[#(#exprs,)*]
+                    },
+                )
+            }
+        } else {
+            exprs.into_iter().next().unwrap()
+        }
     } else {
         parse_quote! {
             ::typescript_type_def::type_expr::TypeExpr::Tuple(

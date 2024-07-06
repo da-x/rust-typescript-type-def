@@ -298,6 +298,10 @@ impl Emit for TypeExpr {
             TypeExpr::Intersection(type_intersection) => {
                 type_intersection.emit(ctx)
             }
+            TypeExpr::ReadOnlyTag => {
+                write!(ctx.w, "{{ readonly __tag: unique symbol }}")?;
+                Ok(())
+            },
         }
     }
 }

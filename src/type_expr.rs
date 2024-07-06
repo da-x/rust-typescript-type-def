@@ -91,6 +91,8 @@ pub enum TypeExpr {
     Union(TypeUnion),
     /// An intersection type.
     Intersection(TypeIntersection),
+    /// Read only tag,
+    ReadOnlyTag,
 }
 
 /// A reference to a built-in TypeScript type, analogous to a Rust path with

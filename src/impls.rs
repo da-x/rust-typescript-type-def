@@ -144,6 +144,16 @@ where
     });
 }
 
+#[cfg(feature = "chrono")]
+impl TypeDef for chrono::DateTime<chrono::FixedOffset> {
+    const INFO: TypeInfo = TypeInfo::Native(NativeTypeInfo {
+        r#ref: TypeExpr::Union(TypeUnion {
+            docs: None,
+            members: &[TypeExpr::ident(Ident("Date"))],
+        }),
+    });
+}
+
 macro_rules! list_type_info {
     ($item:ty) => {
         TypeInfo::Native(NativeTypeInfo {

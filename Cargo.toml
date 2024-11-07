@@ -25,10 +25,12 @@ include = [
 
 [features]
 json_value = ["serde_json"]
+chrono = ["dep:chrono"]
 
 [dependencies]
 typescript-type-def-derive = { version = "=0.5.11", path = "./derive" }
 serde_json = { version = "1.0.64", optional = true }
+chrono = { version = "0.4", optional = true }
 
 [dev-dependencies]
 difference = "2.0.0"

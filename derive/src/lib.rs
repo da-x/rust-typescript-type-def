@@ -183,6 +183,10 @@ struct TypeDefField {
     // type_def
     #[darling(default)]
     type_of: Option<SpannedValue<TypeFromMeta>>,
+    #[darling(default)]
+    importable_name: Option<SpannedValue<String>>,
+    #[darling(default)]
+    importable_from: Option<SpannedValue<String>>,
 
     // serde
     #[darling(default)]

@@ -145,7 +145,7 @@ where
 }
 
 #[cfg(feature = "chrono")]
-impl TypeDef for chrono::DateTime<chrono::FixedOffset> {
+impl TypeDef for chrono::NaiveDateTime {
     const INFO: TypeInfo = TypeInfo::Native(NativeTypeInfo {
         r#ref: TypeExpr::Union(TypeUnion {
             docs: None,
